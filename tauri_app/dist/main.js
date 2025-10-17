@@ -300,6 +300,13 @@ function renderChart(instrument, data, indicators) {
     });
   }
 
+  layout.grid = {
+    rows: currentRow,
+    columns: 1,
+    pattern: 'independent',
+    roworder: 'top to bottom',
+  };
+
   if (data.orb) {
     const orb = data.orb;
     dataTraces.push({
