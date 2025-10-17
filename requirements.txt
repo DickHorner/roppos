@@ -1,1 +1,7 @@
-streamlit
+dash
+pandas
+numpy
+plotly
+requests
+pytz
+PySide6
