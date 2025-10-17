@@ -10,39 +10,16 @@ import pytz
 import requests
 
 
-def _resolve_data_root() -> Path:
-    """Return the most appropriate directory containing bundled data."""
+def _resolve_bundle_path(relative: str) -> Path:
+    """Return a path that works both in development and PyInstaller bundles."""
 
-    candidates = []
-
-    # PyInstaller bundles files into a temporary directory exposed via ``_MEIPASS``.
-    meipass = getattr(sys, "_MEIPASS", None)
-    if meipass:
-        candidates.append(Path(meipass))
-
-    # Repository / editable install layout.
-    candidates.append(Path(__file__).resolve().parent.parent)
-
-    # Fallback: current working directory (helpful for CLI invocation).
-    candidates.append(Path.cwd())
-
-    for root in candidates:
-        candidate = root / "data"
-        if candidate.exists():
-            return candidate
-
-    # Ensure a deterministic location even if nothing exists yet.
-    return Path(__file__).resolve().parent.parent / "data"
+    base_path = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+    if not isinstance(base_path, Path):
+        base_path = Path(base_path)
+    return base_path / relative
 
 
-def resolve_watchlist_path() -> Path:
-    """Locate the watchlist CSV independent of packaging layout."""
-
-    root = _resolve_data_root()
-    return root / "watchlist.csv"
-
-
-WATCHLIST_PATH = resolve_watchlist_path()
+WATCHLIST_PATH = _resolve_bundle_path("data/watchlist.csv")
 BOERSE_SEARCH_ENDPOINT = "https://www.boerse-stuttgart.de/api/data/instruments/search"
 BOERSE_INTRADAY_ENDPOINT = "https://www.boerse-stuttgart.de/api/data/pricehistory/intraday"
 BOERSE_HISTORY_ENDPOINT = "https://www.boerse-stuttgart.de/api/data/pricehistory/history"

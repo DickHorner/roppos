@@ -13,6 +13,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+!tauri_app/dist/
 downloads/
 eggs/
 .eggs/
@@ -33,7 +34,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-!windows_app/build_exe.spec
+!windows_app/boerse_stuttgart_chart.spec
 
 # Installer logs
 pip-log.txt

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -41,25 +40,8 @@ from stuttgart_charts import (
     build_chart,
 )
 
-APP_NAME = "StuttgartCharts"
-
-
-def _ensure_app_data_dir() -> Path:
-    """Return a writable directory for user-specific data."""
-
-    if sys.platform.startswith("win"):
-        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
-    elif sys.platform == "darwin":
-        base = Path.home() / "Library" / "Application Support"
-    else:
-        base = Path.home() / ".local" / "share"
-
-    app_dir = base / APP_NAME
-    app_dir.mkdir(parents=True, exist_ok=True)
-    return app_dir
-
-
-CUSTOM_WATCHLIST_PATH = _ensure_app_data_dir() / "custom_watchlist.json"
+APP_STATE_DIR = Path.home() / ".boerse_stuttgart_charts"
+CUSTOM_WATCHLIST_PATH = APP_STATE_DIR / "custom_watchlist.json"
 
 
 class ChartingWindow(QWidget):
@@ -67,6 +49,15 @@ class ChartingWindow(QWidget):
         super().__init__()
         self.setWindowTitle("Börse Stuttgart Charting")
         self.resize(1400, 900)
+
+        try:
+            APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:  # pragma: no cover - UI feedback path
+            QMessageBox.warning(
+                self,
+                "Warnung",
+                f"Konnte Einstellungsverzeichnis nicht anlegen: {exc}",
+            )
 
         self.watchlist_df = self._load_watchlists()
         self._current_identifier: Optional[str] = None
@@ -179,18 +170,6 @@ class ChartingWindow(QWidget):
                 custom_entries = json.loads(CUSTOM_WATCHLIST_PATH.read_text(encoding="utf-8"))
             except json.JSONDecodeError:
                 QMessageBox.warning(self, "Warnung", "Benutzerdefinierte Watchlist konnte nicht gelesen werden.")
-        else:
-            legacy_path = Path("data/custom_watchlist.json")
-            if legacy_path.exists():
-                try:
-                    custom_entries = json.loads(legacy_path.read_text(encoding="utf-8"))
-                    CUSTOM_WATCHLIST_PATH.write_text(json.dumps(custom_entries, ensure_ascii=False, indent=2), encoding="utf-8")
-                except json.JSONDecodeError:
-                    QMessageBox.warning(
-                        self,
-                        "Warnung",
-                        "Benutzerdefinierte Watchlist aus dem Legacy-Pfad konnte nicht gelesen werden.",
-                    )
         if custom_entries:
             normalised = [self._normalise_entry(entry) for entry in custom_entries]
             custom_df = pd.DataFrame(normalised)
@@ -342,7 +321,17 @@ class ChartingWindow(QWidget):
         existing_identifiers = {item.get("Identifier") for item in existing}
         if identifier not in existing_identifiers:
             existing.append(entry)
-            CUSTOM_WATCHLIST_PATH.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
+            try:
+                CUSTOM_WATCHLIST_PATH.write_text(
+                    json.dumps(existing, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+            except OSError as exc:  # pragma: no cover - UI feedback path
+                QMessageBox.critical(
+                    self,
+                    "Fehler",
+                    f"Watchlist konnte nicht gespeichert werden: {exc}",
+                )
 
 
 def main() -> None:
