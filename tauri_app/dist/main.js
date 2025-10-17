@@ -222,17 +222,15 @@ function renderChart(instrument, data, indicators) {
     height: indicators.showRsi || indicators.showMacd || indicators.showVolume ? 820 : 640,
   };
 
-  const rows = [1];
-  const specs = [[{ type: 'candlestick' }]];
   let currentRow = 1;
   const dataTraces = [...traces];
+  const subplotRows = [{ xAxisKey: 'xaxis', yAxisKey: 'yaxis' }];
 
   if (indicators.showVolume && data.volume) {
     currentRow += 1;
     layout[`xaxis${currentRow}`] = { anchor: `y${currentRow}`, matches: 'x', showgrid: false };
     layout[`yaxis${currentRow}`] = { title: 'Volumen', side: 'right' };
-    specs.push([{ type: 'bar' }]);
-    rows.push(currentRow);
+    subplotRows.push({ xAxisKey: `xaxis${currentRow}`, yAxisKey: `yaxis${currentRow}` });
     data.volumeTrace = {
       x,
       y: data.volume,
@@ -250,8 +248,7 @@ function renderChart(instrument, data, indicators) {
     currentRow += 1;
     layout[`xaxis${currentRow}`] = { anchor: `y${currentRow}`, matches: 'x', showgrid: false };
     layout[`yaxis${currentRow}`] = { title: 'RSI', range: [0, 100] };
-    specs.push([{ type: 'scatter' }]);
-    rows.push(currentRow);
+    subplotRows.push({ xAxisKey: `xaxis${currentRow}`, yAxisKey: `yaxis${currentRow}` });
     dataTraces.push({
       x,
       y: data.rsi,
@@ -267,8 +264,7 @@ function renderChart(instrument, data, indicators) {
     currentRow += 1;
     layout[`xaxis${currentRow}`] = { anchor: `y${currentRow}`, matches: 'x', showgrid: false };
     layout[`yaxis${currentRow}`] = { title: 'MACD' };
-    specs.push([{ type: 'scatter' }]);
-    rows.push(currentRow);
+    subplotRows.push({ xAxisKey: `xaxis${currentRow}`, yAxisKey: `yaxis${currentRow}` });
     dataTraces.push({
       x,
       y: data.macd.macd,
@@ -306,6 +302,23 @@ function renderChart(instrument, data, indicators) {
     pattern: 'independent',
     roworder: 'top to bottom',
   };
+
+  if (currentRow > 1) {
+    const gap = 0.02;
+    const totalGap = gap * (currentRow - 1);
+    const rowHeight = (1 - totalGap) / currentRow;
+
+    subplotRows.forEach(({ xAxisKey, yAxisKey }, index) => {
+      const offsetFromTop = index * (rowHeight + gap);
+      const domainStart = Math.max(0, 1 - offsetFromTop - rowHeight);
+      const domainEnd = Math.min(1, domainStart + rowHeight);
+      const existingYAxis = layout[yAxisKey] || {};
+      const existingXAxis = layout[xAxisKey] || {};
+
+      layout[yAxisKey] = { ...existingYAxis, domain: [domainStart, domainEnd] };
+      layout[xAxisKey] = { ...existingXAxis, domain: [0, 1] };
+    });
+  }
 
   if (data.orb) {
     const orb = data.orb;
