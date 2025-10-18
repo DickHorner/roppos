@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Börse Stuttgart Charts (Tauri)</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
+    <script type="module" src="main.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>Börse Stuttgart Charts</h1>
+      <p>Rust/Tauri Desktop-App mit konfigurierbaren Indikatoren und Watchlist.</p>
+    </header>
+    <main>
+      <section class="controls">
+        <div class="control-group">
+          <label for="instrument-select">Watchlist</label>
+          <select id="instrument-select"></select>
+        </div>
+        <div class="control-group">
+          <label for="search-input">Suche (Name, ISIN, WKN)</label>
+          <div class="search-row">
+            <input id="search-input" type="text" placeholder="z.B. Rheinmetall" />
+            <button id="search-button" type="button">Suchen</button>
+          </div>
+          <ul id="search-results"></ul>
+        </div>
+        <div class="control-group">
+          <label for="range-select">Zeitraum</label>
+          <select id="range-select">
+            <option value="1 Tag">1 Tag (1m)</option>
+            <option value="5 Tage">5 Tage (5m)</option>
+            <option value="1 Monat">1 Monat (30m)</option>
+            <option value="3 Monate">3 Monate (1h)</option>
+            <option value="6 Monate">6 Monate (2h)</option>
+            <option value="1 Jahr">1 Jahr (1d)</option>
+            <option value="3 Jahre">3 Jahre (1d)</option>
+            <option value="5 Jahre">5 Jahre (1d)</option>
+          </select>
+        </div>
+        <fieldset class="control-group">
+          <legend>Indikatoren</legend>
+          <div class="indicator-row">
+            <label><input type="checkbox" value="20" class="sma-checkbox" checked /> SMA 20</label>
+            <label><input type="checkbox" value="50" class="sma-checkbox" /> SMA 50</label>
+            <label><input type="checkbox" value="200" class="sma-checkbox" /> SMA 200</label>
+          </div>
+          <div class="indicator-row">
+            <label><input type="checkbox" value="20" class="ema-checkbox" /> EMA 20</label>
+            <label><input type="checkbox" value="50" class="ema-checkbox" /> EMA 50</label>
+            <label><input type="checkbox" value="100" class="ema-checkbox" /> EMA 100</label>
+          </div>
+          <div class="indicator-row">
+            <label><input type="checkbox" id="bollinger-toggle" checked /> Bollinger 20/2</label>
+            <label><input type="checkbox" id="rsi-toggle" checked /> RSI</label>
+            <label><input type="checkbox" id="macd-toggle" /> MACD</label>
+            <label><input type="checkbox" id="volume-toggle" checked /> Volumen</label>
+          </div>
+          <div class="indicator-row">
+            <label for="orb-minutes">Opening Range (Minuten)</label>
+            <input id="orb-minutes" type="number" min="5" max="120" step="5" value="15" />
+          </div>
+        </fieldset>
+        <button id="add-to-watchlist" type="button">In Watchlist speichern</button>
+      </section>
+      <section class="chart-section">
+        <h2 id="chart-title">Bitte Instrument auswählen</h2>
+        <div id="chart"></div>
+        <div id="status" role="status"></div>
+      </section>
+      <section class="meta-section">
+        <h3>Watchlist-Details</h3>
+        <table id="details-table">
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Trigger</th>
+              <th>Setup</th>
+              <th>Stop</th>
+              <th>TP/Management</th>
+              <th>Zeitrahmen</th>
+              <th>Notizen</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
