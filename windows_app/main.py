@@ -42,12 +42,14 @@ from stuttgart_charts import (
     IndicatorSelection,
     RANGE_WINDOWS,
     build_chart,
+    RANGE_OPTIONS,
     compute_orb,
     enrich_with_timezone,
     fetch_boerse_history,
     load_watchlist,
     prepare_indicators,
     search_instruments,
+    build_chart,
 )
 
 APP_STATE_DIR = Path.home() / ".boerse_stuttgart_charts"
@@ -88,6 +90,7 @@ class ChartingWindow(QWidget):
 
         self.range_combo = QComboBox()
         for key in RANGE_WINDOWS:
+        for key in RANGE_OPTIONS:
             self.range_combo.addItem(key)
         self.range_combo.setCurrentText("1 Tag")
 

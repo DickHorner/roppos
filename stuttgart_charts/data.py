@@ -10,6 +10,12 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Tuple
 from urllib.parse import urljoin
+"""Data loading helpers for Börse Stuttgart instruments."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Dict
 
 import pandas as pd
 import pytz
@@ -186,6 +192,27 @@ def _filter_range(df: pd.DataFrame, range_key: str) -> pd.DataFrame:
     else:
         start_ts = end_ts - window
     return df[df["timestamp"] >= start_ts]
+
+
+BOERSE_SEARCH_ENDPOINT = "https://www.boerse-stuttgart.de/api/data/instruments/search"
+BOERSE_INTRADAY_ENDPOINT = "https://www.boerse-stuttgart.de/api/data/pricehistory/intraday"
+BOERSE_HISTORY_ENDPOINT = "https://www.boerse-stuttgart.de/api/data/pricehistory/history"
+REQUEST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; StockChartingBot/1.0)",
+    "Accept": "application/json, text/plain, */*",
+}
+TIMEZONE_EUROPE_BERLIN = pytz.timezone("Europe/Berlin")
+
+RANGE_OPTIONS: Dict[str, Dict[str, str]] = {
+    "1 Tag": {"range": "1d", "interval": "1m", "endpoint": "intraday"},
+    "5 Tage": {"range": "5d", "interval": "5m", "endpoint": "intraday"},
+    "1 Monat": {"range": "1mo", "interval": "30m", "endpoint": "intraday"},
+    "3 Monate": {"range": "3mo", "interval": "1h", "endpoint": "intraday"},
+    "6 Monate": {"range": "6mo", "interval": "2h", "endpoint": "history"},
+    "1 Jahr": {"range": "1y", "interval": "1d", "endpoint": "history"},
+    "3 Jahre": {"range": "3y", "interval": "1d", "endpoint": "history"},
+    "5 Jahre": {"range": "5y", "interval": "1d", "endpoint": "history"},
+}
 
 
 def load_watchlist(path: Path = WATCHLIST_PATH) -> pd.DataFrame:
@@ -372,6 +399,48 @@ def search_instruments(query: str, limit: int = 15) -> pd.DataFrame:
             break
 
     return pd.DataFrame(records)
+def fetch_boerse_history(identifier: str, range_key: str) -> pd.DataFrame:
+    if range_key not in RANGE_OPTIONS:
+        raise KeyError(f"Unbekannte Range-Auswahl: {range_key}")
+
+    selection = RANGE_OPTIONS[range_key]
+    params = {
+        "isin": identifier,
+        "range": selection["range"],
+        "interval": selection["interval"],
+    }
+    endpoint = (
+        BOERSE_INTRADAY_ENDPOINT
+        if selection["endpoint"] == "intraday"
+        else BOERSE_HISTORY_ENDPOINT
+    )
+    response = requests.get(endpoint, params=params, headers=REQUEST_HEADERS, timeout=15)
+    response.raise_for_status()
+    payload = response.json()
+    df = _normalise_records(payload)
+    if df.empty:
+        raise ValueError("Keine Kursdaten verfügbar")
+    return df
+
+
+def search_instruments(query: str, limit: int = 15) -> pd.DataFrame:
+    params = {"query": query, "limit": limit}
+    response = requests.get(
+        BOERSE_SEARCH_ENDPOINT, params=params, headers=REQUEST_HEADERS, timeout=10
+    )
+    response.raise_for_status()
+    payload = response.json()
+
+    candidates = None
+    if isinstance(payload, dict):
+        for key in ("data", "results", "items", "instruments"):
+            if key in payload:
+                candidates = payload[key]
+                break
+    if candidates is None:
+        candidates = payload
+    df = pd.DataFrame(candidates)
+    return df
 
 
 def enrich_with_timezone(df: pd.DataFrame, tz: pytz.timezone = TIMEZONE_EUROPE_BERLIN) -> pd.DataFrame:

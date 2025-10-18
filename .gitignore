@@ -13,6 +13,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+!tauri_app/dist/
 downloads/
 eggs/
 .eggs/
