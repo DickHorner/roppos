@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from .data import TIMEZONE_EUROPE_BERLIN
+_TZ = TIMEZONE_EUROPE_BERLIN
 
 
 @dataclass
@@ -277,4 +278,37 @@ def build_chart(
             )
 
     fig.update_layout(title=title, xaxis_rangeslider_visible=False, template="plotly_dark")
+
+    # Snapshot banner annotation (outside trading hours)
+    try:
+        source = getattr(df, "attrs", {}).get("source")
+        if source == "html_snapshot":
+            ts = df.attrs.get("last_update")
+            try:
+                if ts is not None and hasattr(ts, "tz_convert"):
+                    ts_local = ts.tz_convert(_TZ)
+                    note = f"Snapshot (außerhalb Handelszeit) – {ts_local:%d.%m.%Y %H:%M:%S}"
+                else:
+                    ts_last = df["timestamp_local"] if "timestamp_local" in df.columns else None
+                    if ts_last is not None and len(ts_last) > 0:
+                        note = f"Snapshot (außerhalb Handelszeit) – {ts_last.iloc[-1]:%d.%m.%Y %H:%M:%S}"
+                    else:
+                        note = "Snapshot (außerhalb Handelszeit)"
+            except Exception:
+                note = "Snapshot (außerhalb Handelszeit)"
+
+            fig.add_annotation(
+                xref="paper",
+                yref="paper",
+                x=1.0,
+                y=1.08,
+                showarrow=False,
+                text=note,
+                align="right",
+                font=dict(color="rgba(255, 193, 7, 1)", size=12),
+                bgcolor="rgba(255, 193, 7, 0.15)",
+                bordercolor="rgba(255, 193, 7, 0.6)",
+            )
+    except Exception:
+        pass
     return fig

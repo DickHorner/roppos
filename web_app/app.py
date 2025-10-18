@@ -19,6 +19,7 @@ from stuttgart_charts import (
     prepare_indicators,
     search_instruments,
 )
+from stuttgart_charts import data as _data
 
 
 def _initial_watchlist() -> List[Dict]:
@@ -271,6 +272,17 @@ def update_chart(
         orb_levels = compute_orb(df, selection.orb_minutes)
         entry = _find_watchlist_entry(watchlist, identifier)
         title = f"{entry.get('Name', identifier)} ({identifier})"
+        # UI hint: snapshot outside trading hours
+        try:
+            if getattr(df, "attrs", {}).get("source") == "html_snapshot":
+                ts = df.attrs.get("last_update")
+                if ts is not None:
+                    ts_local = ts.tz_convert(_data.TIMEZONE_EUROPE_BERLIN)
+                    title += f" • Snapshot (außerhalb Handelszeit) – {ts_local:%d.%m.%Y %H:%M:%S}"
+                else:
+                    title += " • Snapshot (außerhalb Handelszeit)"
+        except Exception:
+            pass
         fig = build_chart(df, selection, orb_levels, title)
         return fig
     except Exception as exc:  # noqa: BLE001

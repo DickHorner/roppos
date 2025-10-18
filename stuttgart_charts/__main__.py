@@ -117,7 +117,18 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
     enriched = indicators.prepare_indicators(df, selection)
     orb = indicators.compute_orb(enriched, selection.orb_minutes)
 
-    title = f"{args.isin} – {args.range}"
+    title = f"{args.isin} - {args.range}"
+    # UI hint if we used HTML snapshot (off-hours)
+    try:
+        if getattr(df, "attrs", {}).get("source") == "html_snapshot":
+            ts = df.attrs.get("last_update")
+            if ts is not None:
+                ts_local = ts.tz_convert(data.TIMEZONE_EUROPE_BERLIN)
+                title += f" • Snapshot (außerhalb Handelszeit) – {ts_local:%d.%m.%Y %H:%M:%S}"
+            else:
+                title += " • Snapshot (außerhalb Handelszeit)"
+    except Exception:
+        pass
     figure = indicators.build_chart(enriched, selection, orb, title=title)
 
     if args.output:

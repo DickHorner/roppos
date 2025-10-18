@@ -49,6 +49,7 @@ from stuttgart_charts import (
     search_instruments,
     build_chart,
 )
+from stuttgart_charts.data import TIMEZONE_EUROPE_BERLIN as _TZ
 
 APP_STATE_DIR = Path.home() / ".boerse_stuttgart_charts"
 CUSTOM_WATCHLIST_PATH = APP_STATE_DIR / "custom_watchlist.json"
@@ -267,6 +268,18 @@ class ChartingWindow(QWidget):
             df = prepare_indicators(df, selection)
             orb_levels = compute_orb(df, selection.orb_minutes)
             title = f"{identifier} - {range_choice}"
+            # UI hint: snapshot outside trading hours
+            try:
+                if getattr(df, "attrs", {}).get("source") == "html_snapshot":
+                    ts = df.attrs.get("last_update")
+                    if ts is not None:
+                        # convert for display
+                        ts_local = ts.tz_convert(_TZ)
+                        title += f" • Snapshot (außerhalb Handelszeit) – {ts_local:%d.%m.%Y %H:%M:%S}"
+                    else:
+                        title += " • Snapshot (außerhalb Handelszeit)"
+            except Exception:
+                pass
             fig = build_chart(df, selection, orb_levels, title)
             html = fig.to_html(include_plotlyjs="cdn", full_html=False)
             self.chart_view.setHtml(html)

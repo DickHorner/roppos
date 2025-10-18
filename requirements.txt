@@ -3,5 +3,6 @@ pandas
 numpy
 plotly
 requests
+beautifulsoup4
 pytz
 PySide6
