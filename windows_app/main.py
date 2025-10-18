@@ -6,6 +6,16 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
+# Ensure the project root is on ``sys.path`` so the ``stuttgart_charts`` package
+# can be imported when this module is executed directly (e.g. by double-clicking
+# ``main.py`` in Windows Explorer).  When frozen via PyInstaller ``sys._MEIPASS``
+# already contains the bundled package, so we only adjust the path in the
+# unfrozen case.
+if not getattr(sys, "frozen", False):
+    project_root = Path(__file__).resolve().parents[1]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (

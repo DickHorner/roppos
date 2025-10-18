@@ -1,36 +1,10 @@
 # Börse Stuttgart Charting Tools
 
-Dieses Repository enthält drei eigenständige Anwendungen, die umfangreiche, konfigurierbare Charts für Börse-Stuttgart-Instrumente bereitstellen. Zwei Frontends greifen auf das gemeinsame Python-Paket `stuttgart_charts` zu, während die neue Rust/Tauri-Anwendung dieselbe Funktionalität nativ implementiert.
+Dieses Repository enthält zwei eigenständige Anwendungen, die auf den gleichen Analysemodulen aufbauen und umfangreiche, konfigurierbare Charts für Börse-Stuttgart-Instrumente bereitstellen.
 
 ## 📦 Gemeinsame Basis
 
-Die Logik zum Laden der Watchlist, Abrufen der Marktdaten, Berechnen von Indikatoren und Erstellen der Plotly-Charts befindet sich für die Python-Frontends im Paket [`stuttgart_charts`](stuttgart_charts/). Der Rust-Client unter [`tauri_app/`](tauri_app/) verfügt über eine äquivalente Implementierung (HTTP-Zugriff, Indikatoren, ORB) in Rust und liefert dieselben Features innerhalb einer nativen Desktop-Shell.
-
-## 🦀 Rust/Tauri-Desktop-App
-
-Der Ordner [`tauri_app/`](tauri_app/) enthält eine auf Rust und Tauri basierende Anwendung, die ohne Python-Laufzeit auskommt. Highlights:
-
-- Vor-konfigurierte Watchlist, Suche nach weiteren Instrumenten, Persistenz kompatibel zu den Python-Frontends (`~/.boerse_stuttgart_charts/custom_watchlist.json`)
-- Plotly.js im Tauri-WebView mit SMA/EMA, Bollinger-Bändern, RSI, MACD, Volumen und ORB-Markierung
-- Komplett native Backend-Implementierung (Reqwest + Chrono), optimiert für leichte Distribution via Tauri
-
-### Entwicklung & Test
-
-Voraussetzungen: aktuelles Rust-Toolchain sowie `cargo-tauri` (installierbar via `cargo install tauri-cli`). Anschließend kann die App wie folgt gestartet werden:
-
-```bash
-cd tauri_app
-cargo tauri dev --manifest-path src-tauri/Cargo.toml
-```
-
-Für signierte Builds (Windows .msi/.exe, macOS `.app`, Linux `.deb/.AppImage`) genügt:
-
-```bash
-cd tauri_app
-cargo tauri build --manifest-path src-tauri/Cargo.toml
-```
-
-Die gebauten Artefakte landen unter `tauri_app/src-tauri/target/release/bundle/`.
+Die Logik zum Laden der Watchlist, Abrufen der Marktdaten, Berechnen von Indikatoren und Erstellen der Plotly-Charts befindet sich im Paket [`stuttgart_charts`](stuttgart_charts/). Beide Frontends greifen darauf zurück, wodurch Erweiterungen an einem zentralen Ort vorgenommen werden können.
 
 ## 🖥️ Windows-Desktop-App
 
@@ -79,21 +53,29 @@ Der Server lauscht standardmäßig auf `http://127.0.0.1:8050` und kann für den
 
 ## 📊 Datenbasis
 
-Die Datei [`data/watchlist.csv`](data/watchlist.csv) enthält die kuratierte Liste an Instrumenten samt Trading-Setup-Metadaten. Ergänzungen über die Frontends werden pro Benutzer in `%USERPROFILE%/.boerse_stuttgart_charts/custom_watchlist.json` (Linux/macOS: `~/.boerse_stuttgart_charts/custom_watchlist.json`) persistiert und sind zwischen den Python- und der Rust/Tauri-Anwendung austauschbar.
+Die Datei [`data/watchlist.csv`](data/watchlist.csv) enthält die kuratierte Liste an Instrumenten samt Trading-Setup-Metadaten. Ergänzungen über die Frontends werden pro Benutzer in `%USERPROFILE%/.boerse_stuttgart_charts/custom_watchlist.json` persistiert.
 
 ## ✅ Tests
 
-Zum schnellen Syntax-Check können die Python-Komponenten kompiliert werden:
+Zum schnellen Syntax-Check kann das Projekt kompiliert werden:
 
 ```bash
 python -m compileall stuttgart_charts windows_app web_app
 ```
 
-Für den Rust/Tauri-Part empfiehlt sich zusätzlich:
+Weitere Tests (Unit- oder Integrationstests) können bei Bedarf ergänzt werden.
+
+## ⚙️ Schnelle Vorschau aus der Konsole
+
+Für eine schnelle Sichtprüfung ohne GUI kann das Kernpaket direkt als Modul
+ausgeführt werden. Dabei wird ein Plotly-Chart erzeugt, der entweder im Browser
+geöffnet oder als HTML-Datei gespeichert wird:
 
 ```bash
-cargo fmt --manifest-path tauri_app/src-tauri/Cargo.toml
-cargo check --manifest-path tauri_app/src-tauri/Cargo.toml
+python -m stuttgart_charts --isin DE0007030009 --range "1 Monat" --output charts/rheinmetall.html
 ```
 
-Weitere Tests (Unit- oder Integrationstests) können bei Bedarf ergänzt werden.
+Ohne `--output` öffnet sich der Chart unmittelbar im Standardbrowser. Über
+Parameter wie `--sma 10 20 50`, `--ema 12 26`, `--no-rsi`, `--no-macd` oder
+`--orb-minutes 30` lassen sich die Indikatoren analog zu den Frontends
+konfigurieren.
