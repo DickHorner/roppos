@@ -1,6 +1,7 @@
 """Shared utilities for Börse Stuttgart charting apps."""
 
 from .data import (
+    RANGE_WINDOWS,
     BOERSE_HISTORY_ENDPOINT,
     BOERSE_INTRADAY_ENDPOINT,
     BOERSE_SEARCH_ENDPOINT,
@@ -23,6 +24,7 @@ from .indicators import (
 )
 
 __all__ = [
+    "RANGE_WINDOWS",
     "BOERSE_HISTORY_ENDPOINT",
     "BOERSE_INTRADAY_ENDPOINT",
     "BOERSE_SEARCH_ENDPOINT",

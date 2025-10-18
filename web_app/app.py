@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 
 from stuttgart_charts import (
     IndicatorSelection,
+    RANGE_WINDOWS,
     RANGE_OPTIONS,
     build_chart,
     compute_orb,
@@ -113,6 +114,7 @@ app.layout = html.Div(
                                 html.Label("Zeithorizont"),
                                 dcc.Dropdown(
                                     id="range-dropdown",
+                                    options=[{"label": key, "value": key} for key in RANGE_WINDOWS],
                                     options=[{"label": key, "value": key} for key in RANGE_OPTIONS],
                                     value="1 Tag",
                                 ),

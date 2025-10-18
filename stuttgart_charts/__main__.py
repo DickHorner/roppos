@@ -49,6 +49,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--range",
         default="5 Tage",
+        choices=list(data.RANGE_WINDOWS.keys()),
         choices=list(data.RANGE_OPTIONS.keys()),
         help="Zeitraum der Kursdaten (Standard: 5 Tage)",
     )

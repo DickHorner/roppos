@@ -55,6 +55,14 @@ Der Server lauscht standardmäßig auf `http://127.0.0.1:8050` und kann für den
 
 Die Datei [`data/watchlist.csv`](data/watchlist.csv) enthält die kuratierte Liste an Instrumenten samt Trading-Setup-Metadaten. Ergänzungen über die Frontends werden pro Benutzer in `%USERPROFILE%/.boerse_stuttgart_charts/custom_watchlist.json` persistiert.
 
+Mangels offizieller API wird der Datenabruf direkt über die öffentlichen Detail-
+und Suchseiten der Börse Stuttgart durchgeführt. Das Modul
+[`stuttgart_charts.data`](stuttgart_charts/data.py) extrahiert hierfür den
+clientseitigen Nuxt-Zustand aus dem HTML, normalisiert die enthaltenen
+Kursreihen (inkl. Intraday-Daten) und filtert sie auf den gewünschten Zeitraum.
+Die Suche nach zusätzlichen Werten parst analog die HTML-Suchergebnisse und
+liefert ISIN/WKN samt Detail-URL zurück.
+
 ## ✅ Tests
 
 Zum schnellen Syntax-Check kann das Projekt kompiliert werden:

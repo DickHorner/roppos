@@ -40,6 +40,8 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from stuttgart_charts import (
     IndicatorSelection,
+    RANGE_WINDOWS,
+    build_chart,
     RANGE_OPTIONS,
     compute_orb,
     enrich_with_timezone,
@@ -87,6 +89,7 @@ class ChartingWindow(QWidget):
         self.add_button.clicked.connect(self._add_selected_search_result)
 
         self.range_combo = QComboBox()
+        for key in RANGE_WINDOWS:
         for key in RANGE_OPTIONS:
             self.range_combo.addItem(key)
         self.range_combo.setCurrentText("1 Tag")
