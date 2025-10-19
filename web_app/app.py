@@ -2,14 +2,25 @@
 from __future__ import annotations
 
 from typing import Dict, List
+import sys
+from pathlib import Path
 
 import dash
 from dash import Dash, Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
 
+# Ensure the project root is on sys.path so the sibling
+# package stuttgart_charts can be imported when this module
+# is executed directly.
+if not getattr(sys, "frozen", False):
+    project_root = Path(__file__).resolve().parents[1]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
 from stuttgart_charts import (
     IndicatorSelection,
+    RANGE_WINDOWS,
     RANGE_OPTIONS,
     build_chart,
     compute_orb,
@@ -293,4 +304,4 @@ server = app.server
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=True)
